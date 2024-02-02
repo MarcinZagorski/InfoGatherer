@@ -1,6 +1,7 @@
 ﻿using InfoGatherer.api.Helpers;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Linq;
 
 namespace InfoGatherer.api.Filters
 {
@@ -8,17 +9,23 @@ namespace InfoGatherer.api.Filters
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
-            OpenApiPaths keyValuePairs = new OpenApiPaths();
+            var paths = new OpenApiPaths();
+
             foreach (var path in swaggerDoc.Paths)
             {
-                var value = path.Value;
+                var segments = path.Key.Trim('/').Split('/');
 
-                // here you have to put logic to convert name to camelCase
-                string newkey = path.Key.ToCamelCase();
+                var transformedSegments = segments.Select(segment =>
+                    segment.StartsWith("{") && segment.EndsWith("}")
+                        ? segment
+                        : segment.ToCamelCase());
 
-                keyValuePairs.Add(newkey, value);
+                var newPath = "/" + string.Join("/", transformedSegments);
+
+                paths[newPath] = path.Value;
             }
-            swaggerDoc.Paths = keyValuePairs;
+
+            swaggerDoc.Paths = paths; 
         }
     }
 }
