@@ -1,10 +1,18 @@
-﻿using InfoGatherer.api.Configuration;
+﻿using FluentValidation;
+using InfoGatherer.api.Configuration;
 using InfoGatherer.api.Data;
 using InfoGatherer.api.Data.Entities;
+using InfoGatherer.api.Data.Repositories.Interfaces;
+using InfoGatherer.api.Data.Repositories;
+using InfoGatherer.api.DTOs.Users;
+using InfoGatherer.api.Validators.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using NLog;
+using ILogger = NLog.ILogger;
+using NLog.Extensions.Logging;
 
 namespace InfoGatherer.api
 {
@@ -22,10 +30,25 @@ namespace InfoGatherer.api
         {
             var services = _builder.Services;
             var configuration = _builder.Configuration;
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+            services.AddSingleton<ILogger>(logger);
 
+            // config's
             services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));
             services.Configure<GeneralConfig>(configuration.GetSection("GeneralConfig"));
             services.Configure<HangfireConfig>(configuration.GetSection("HangfireConfig"));
+
+            // repos
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            // validators
+            services.AddTransient<IValidator<UserRegisterDto>, UserRegisterDtoValidator>();
+
+
+
+
+
+
 
             services.AddControllers().AddJsonOptions(x =>
             x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
