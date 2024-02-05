@@ -13,6 +13,8 @@ using System.Text.Json.Serialization;
 using NLog;
 using ILogger = NLog.ILogger;
 using NLog.Extensions.Logging;
+using InfoGatherer.api.Services.Interfaces;
+using InfoGatherer.api.Services;
 
 namespace InfoGatherer.api
 {
@@ -40,11 +42,13 @@ namespace InfoGatherer.api
 
             // repos
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             // validators
             services.AddTransient<IValidator<UserRegisterDto>, UserRegisterDtoValidator>();
 
-
+            // services
+            services.AddScoped<ITokenService, TokenService>();
 
 
 
@@ -80,10 +84,10 @@ namespace InfoGatherer.api
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/public/swagger.json", "InfoGatherer API Public");
+                c.SwaggerEndpoint("/api/swagger/public/swagger.json", "InfoGatherer API Public");
                 if (app.Environment.IsDevelopment())
                 {
-                    c.SwaggerEndpoint("/swagger/internal/swagger.json", "InfoGatherer API Internal");
+                    c.SwaggerEndpoint("/api/swagger/internal/swagger.json", "InfoGatherer API Internal");
                 }
             });
             if (app.Environment.IsDevelopment())

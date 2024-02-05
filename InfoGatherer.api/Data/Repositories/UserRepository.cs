@@ -65,9 +65,24 @@ namespace InfoGatherer.api.Data.Repositories
                 return false;
             }
         }
+
         public async Task<bool> UserExistsAsync(string email)
         {
             return await _context.Users.AnyAsync(u => u.Email == email);
+        }
+        public async Task<AppUser> LoginAsync(string email, string password)
+        {
+            //TODO: Protection of multiple incorrect password entry
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null)
+            {
+                var result = await _userManager.CheckPasswordAsync(user, password);
+                if (result)
+                {
+                    return user;
+                }
+            }
+            return null;
         }
     }
 }

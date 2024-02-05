@@ -1,4 +1,5 @@
-﻿using InfoGatherer.api.DTOs.Users;
+﻿using InfoGatherer.api.Data.Entities;
+using InfoGatherer.api.DTOs.Users;
 
 namespace InfoGatherer.api.Data.Repositories.Interfaces
 {
@@ -6,5 +7,6 @@ namespace InfoGatherer.api.Data.Repositories.Interfaces
     {
         Task<bool> RegisterUserAsync(UserRegisterDto userRegisterDto);
         Task<bool> UserExistsAsync(string email);
+        Task<AppUser> LoginAsync(string email, string password);
     }
 }

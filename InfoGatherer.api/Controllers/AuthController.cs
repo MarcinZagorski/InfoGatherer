@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using InfoGatherer.api.Data.Repositories.Interfaces;
 using InfoGatherer.api.DTOs.Users;
+using InfoGatherer.api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +12,13 @@ namespace InfoGatherer.api.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IValidator<UserRegisterDto> _validator;
+        private readonly ITokenService _tokenService;
 
-        public AuthController(IUserRepository userRepository, IValidator<UserRegisterDto> validator)
+        public AuthController(IUserRepository userRepository, IValidator<UserRegisterDto> validator, ITokenService tokenService)
         {
             _userRepository = userRepository;
             _validator = validator;
+            _tokenService = tokenService;
         }
         [AllowAnonymous]
         [HttpPost("register")]
@@ -40,6 +43,38 @@ namespace InfoGatherer.api.Controllers
             {
                 return BadRequest(new { message = "User registration failed." });
             }
+        }
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            var user = await _userRepository.LoginAsync(loginDto.Email, loginDto.Password);
+            if (user != null)
+            {
+                var token = await _tokenService.GenerateJwtToken(user);
+                return Ok(new { token, message = "Login successful" });
+            }
+
+            _logger.Warn($"Login failed for user {loginDto.Email}.");
+            return Unauthorized(new { message = "Login failed. Invalid email or password." });
+        }
+        [HttpPost("refresh")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshRequestDto refreshRequest)
+        {
+            if (string.IsNullOrEmpty(refreshRequest.Token) || string.IsNullOrEmpty(refreshRequest.RefreshToken))
+            {
+                return BadRequest(new { message = "Invalid request, missing tokens." });
+            }
+
+            var authResponse = await _tokenService.RefreshTokenAsync(refreshRequest.Token, refreshRequest.RefreshToken);
+
+            if (authResponse == null)
+            {
+                return BadRequest(new { message = "Invalid tokens or tokens expired." });
+            }
+
+            return Ok(authResponse);
         }
     }
 }

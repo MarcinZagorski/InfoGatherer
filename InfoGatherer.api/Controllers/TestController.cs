@@ -17,7 +17,6 @@ namespace InfoGatherer.api.Controllers
             new Item() { Id = 1, Name = "Item 1" },
             new Item() { Id = 2, Name = "Item 2" }
         };
-        [AllowAnonymous]
         [HttpGet("{id}")]
         public ActionResult<Item> GetItem(int id)
         {
