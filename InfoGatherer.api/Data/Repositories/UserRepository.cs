@@ -1,4 +1,5 @@
-﻿using InfoGatherer.api.Configuration;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using InfoGatherer.api.Configuration;
 using InfoGatherer.api.Data.Entities;
 using InfoGatherer.api.Data.Repositories.Interfaces;
 using InfoGatherer.api.DTOs.Users;
@@ -83,6 +84,13 @@ namespace InfoGatherer.api.Data.Repositories
                 }
             }
             return null;
+        }
+        public async Task<bool> ChangePasswordAsync(string oldPassword, string newPassword)
+        {
+            var user = await _userManager.FindByIdAsync(_context.User.Id.ToString());
+            if (user == null) return false;
+            var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+            return result.Succeeded;
         }
     }
 }

@@ -4,6 +4,7 @@ using InfoGatherer.api.DTOs.Users;
 using InfoGatherer.api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InfoGatherer.api.Controllers
@@ -12,13 +13,15 @@ namespace InfoGatherer.api.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IValidator<UserRegisterDto> _validator;
+        private readonly IValidator<ChangePasswordDto> _validatorChangePassword;
         private readonly ITokenService _tokenService;
 
-        public AuthController(IUserRepository userRepository, IValidator<UserRegisterDto> validator, ITokenService tokenService)
+        public AuthController(IUserRepository userRepository, IValidator<UserRegisterDto> validator, ITokenService tokenService, IValidator<ChangePasswordDto> validatorChangePassword)
         {
             _userRepository = userRepository;
             _validator = validator;
             _tokenService = tokenService;
+            _validatorChangePassword = validatorChangePassword;
         }
         [AllowAnonymous]
         [HttpPost("register")]
@@ -75,6 +78,24 @@ namespace InfoGatherer.api.Controllers
             }
 
             return Ok(authResponse);
+        }
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto model)
+        {
+            var validationResult = await _validatorChangePassword.ValidateAsync(model);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var success = await _userRepository.ChangePasswordAsync(model.OldPassword, model.NewPassword);
+
+            if (!success)
+            {
+                return BadRequest("Failed to change password.");
+            }
+
+            return Ok("Password changed successfully.");
         }
     }
 }

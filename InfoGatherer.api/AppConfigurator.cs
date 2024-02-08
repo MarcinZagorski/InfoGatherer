@@ -15,6 +15,8 @@ using ILogger = NLog.ILogger;
 using NLog.Extensions.Logging;
 using InfoGatherer.api.Services.Interfaces;
 using InfoGatherer.api.Services;
+using Hangfire;
+using InfoGatherer.api.Filters;
 
 namespace InfoGatherer.api
 {
@@ -46,6 +48,8 @@ namespace InfoGatherer.api
 
             // validators
             services.AddTransient<IValidator<UserRegisterDto>, UserRegisterDtoValidator>();
+            services.AddTransient<IValidator<ChangePasswordDto>, ChangePasswordDtoValidator>();
+
 
             // services
             services.AddScoped<ITokenService, TokenService>();
@@ -95,11 +99,17 @@ namespace InfoGatherer.api
                 app.UseDeveloperExceptionPage();
             }
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            if (!string.IsNullOrWhiteSpace(app.Configuration["HangfireConfig:Enabled"]) && bool.Parse(app.Configuration["HangfireConfig:Enabled"]))
+            {
+                app.MapHangfireDashboard("/DashboardHf", new DashboardOptions { AppPath = null, Authorization = new[] { new HangfireAuthFilter() }, StatsPollingInterval = 30000, DashboardTitle = "InfoGatherer Tasks" });
+            }
+
             // app.UseWebSockets(); // Later add sockets
             //app.MapHub<NotificationHub>("/NotificationSocket");
             app.UseHttpsRedirection();
-            app.UseAuthentication();
-            app.UseAuthorization();
+
             app.MapControllers();
         }
     }

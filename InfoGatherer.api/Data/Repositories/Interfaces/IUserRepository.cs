@@ -8,5 +8,6 @@ namespace InfoGatherer.api.Data.Repositories.Interfaces
         Task<bool> RegisterUserAsync(UserRegisterDto userRegisterDto);
         Task<bool> UserExistsAsync(string email);
         Task<AppUser> LoginAsync(string email, string password);
+        Task<bool> ChangePasswordAsync(string oldPassword, string newPassword);
     }
 }
