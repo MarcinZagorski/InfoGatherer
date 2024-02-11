@@ -7,9 +7,9 @@
     }
     public class TaskStatus
     {
+        public bool Enabled { get; set; }
         public string Name { get; set; }
         public bool IntervalExecution { get; set; }
-        public bool Daily { get; set; }
         public int Hour { get; set; }
         public int Minute { get; set; }
     }

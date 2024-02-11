@@ -1,34 +1,62 @@
 ﻿using Hangfire;
+using InfoGatherer.api.BackgroundTasks;
+using InfoGatherer.api.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+using System.Threading.Tasks;
 
 public static class HangfireConfigurator
 {
     public static void ConfigureHangfire(IServiceCollection services, IConfiguration configuration)
     {
-        bool.TryParse(configuration["HangfireConfig:Enabled"], out var hangfireEnabled);
+        var hangfireConfig = configuration.GetSection("HangfireConfig").Get<HangfireConfig>();
+        if (hangfireConfig == null || !hangfireConfig.Enabled) return;
 
-        if (hangfireEnabled)
+        services.AddHangfire(x => x.UseSqlServerStorage(configuration.GetConnectionString("dbConnection")));
+        services.AddHangfireServer();
+        //services.AddHangfireServer(options => options.WorkerCount = 1); // for async jobs
+
+        var backgroundTaskTypes = Assembly.GetExecutingAssembly().GetTypes()
+           .Where(t => typeof(IBackgroundTask).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract).ToList();
+
+        foreach (var taskType in backgroundTaskTypes)
         {
-            services.AddHangfire(config =>
-            {
-                config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-                      .UseSimpleAssemblyNameTypeSerializer()
-                      .UseRecommendedSerializerSettings()
-                      .UseSqlServerStorage(configuration.GetConnectionString("dbConnection"), new Hangfire.SqlServer.SqlServerStorageOptions
-                      {
-                          CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                          SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                          QueuePollInterval = TimeSpan.Zero,
-                          UseRecommendedIsolationLevel = true,
-                          DisableGlobalLocks = true
-                      });
-            });
+            services.AddScoped(taskType);
+        }
+    }
+    public static void ScheduleHangfireJobs(IServiceProvider serviceProvider, HangfireConfig hangfireConfig)
+    {
+        var taskTypes = Assembly.GetExecutingAssembly().GetTypes()
+            .Where(t => typeof(IBackgroundTask).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+        var scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
-            services.AddHangfireServer(options =>
+        foreach (var taskType in taskTypes)
+        {
+            var taskStatus = hangfireConfig.Tasks.FirstOrDefault(x => x.Name == taskType.Name);
+            if (taskStatus == null || !taskStatus.Enabled) continue;
+
+            var cronExpression = GenerateCronExpression(taskStatus);
+            if (string.IsNullOrEmpty(cronExpression)) continue;
+
+            using (var scope = scopeFactory.CreateScope())
             {
-                options.WorkerCount = 1;
-                options.ServerName = "InfoGatherer Server";
-            });
+                var taskInstance = scope.ServiceProvider.GetService(taskType) as IBackgroundTask;
+                if (taskInstance == null) continue;
+
+                RecurringJob.AddOrUpdate(taskStatus.Name, () => taskInstance.ExecuteAsync(), cronExpression);
+            }
+        }
+    }
+
+    private static string GenerateCronExpression(InfoGatherer.api.Configuration.TaskStatus taskStatus)
+    {
+        if (taskStatus.IntervalExecution)
+        {
+            return $"*/{taskStatus.Minute} * * * *";
+        }
+        else
+        {
+            return $"{taskStatus.Minute} {taskStatus.Hour} * * *";
         }
     }
 }

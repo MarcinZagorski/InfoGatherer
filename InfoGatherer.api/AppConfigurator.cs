@@ -17,6 +17,8 @@ using InfoGatherer.api.Services.Interfaces;
 using InfoGatherer.api.Services;
 using Hangfire;
 using InfoGatherer.api.Filters;
+using Microsoft.Extensions.Options;
+using InfoGatherer.api.BackgroundTasks.Jobs.TestJobs;
 
 namespace InfoGatherer.api
 {
@@ -54,7 +56,9 @@ namespace InfoGatherer.api
             // services
             services.AddScoped<ITokenService, TokenService>();
 
-
+            // hangfire
+            services.AddTransient<IDailyJob, DailyJob>();
+            services.AddTransient<IIntervalJob, IntervalJob>();
 
 
 
@@ -108,7 +112,9 @@ namespace InfoGatherer.api
 
             // app.UseWebSockets(); // Later add sockets
             //app.MapHub<NotificationHub>("/NotificationSocket");
-            app.UseHttpsRedirection();
+            app.UseHttpsRedirection(); 
+            var hangfireConfig = app.Services.GetService<IOptions<HangfireConfig>>().Value;
+            HangfireConfigurator.ScheduleHangfireJobs(app.Services, hangfireConfig);
 
             app.MapControllers();
         }
