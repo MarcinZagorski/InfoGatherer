@@ -22,15 +22,10 @@ using InfoGatherer.api.BackgroundTasks.Jobs.TestJobs;
 
 namespace InfoGatherer.api
 {
-    public class AppConfigurator
+    public class AppConfigurator(WebApplicationBuilder builder)
     {
-        private readonly WebApplicationBuilder _builder;
-        public IConfiguration Configuration { get; }
-        public AppConfigurator(WebApplicationBuilder builder)
-        {
-            _builder = builder;
-            Configuration = builder.Configuration;
-        }
+        private readonly WebApplicationBuilder _builder = builder;
+        public IConfiguration Configuration { get; } = builder.Configuration;
 
         public void ConfigureServices()
         {

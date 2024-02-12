@@ -9,20 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InfoGatherer.api.Controllers
 {
-    public class AuthController : BaseController
+    public class AuthController(IUserRepository userRepository, IValidator<UserRegisterDto> validator, ITokenService tokenService, IValidator<ChangePasswordDto> validatorChangePassword) : BaseController
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IValidator<UserRegisterDto> _validator;
-        private readonly IValidator<ChangePasswordDto> _validatorChangePassword;
-        private readonly ITokenService _tokenService;
+        private readonly IUserRepository _userRepository = userRepository;
+        private readonly IValidator<UserRegisterDto> _validator = validator;
+        private readonly IValidator<ChangePasswordDto> _validatorChangePassword = validatorChangePassword;
+        private readonly ITokenService _tokenService = tokenService;
 
-        public AuthController(IUserRepository userRepository, IValidator<UserRegisterDto> validator, ITokenService tokenService, IValidator<ChangePasswordDto> validatorChangePassword)
-        {
-            _userRepository = userRepository;
-            _validator = validator;
-            _tokenService = tokenService;
-            _validatorChangePassword = validatorChangePassword;
-        }
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegisterDto)
@@ -62,7 +55,6 @@ namespace InfoGatherer.api.Controllers
             return Unauthorized(new { message = "Login failed. Invalid email or password." });
         }
         [HttpPost("refresh")]
-        [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshRequestDto refreshRequest)
         {
             if (string.IsNullOrEmpty(refreshRequest.Token) || string.IsNullOrEmpty(refreshRequest.RefreshToken))

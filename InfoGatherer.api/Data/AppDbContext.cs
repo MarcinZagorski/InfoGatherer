@@ -1,4 +1,5 @@
 ﻿using InfoGatherer.api.Data.Entities;
+using InfoGatherer.api.Data.Entities.Scrapper;
 using InfoGatherer.api.DTOs.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -13,6 +14,7 @@ namespace InfoGatherer.api.Data
         private readonly UserInfo _user;
         public UserInfo User { get { return _user; } }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Wibor> Wibors { get; set; }
         public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor accessor) : base(options)
         {
             var user = accessor?.HttpContext?.User;

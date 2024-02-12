@@ -92,5 +92,11 @@ namespace InfoGatherer.api.Data.Repositories
             var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
             return result.Succeeded;
         }
+        public async Task<AppUser> CheckApiKey(string apiKey)
+        {
+            var user = await _context.Users.Where(x=> x.ApiKey == apiKey).FirstOrDefaultAsync();
+            //TODO if user is null check if user is logged
+            return user;
+        }
     }
 }
