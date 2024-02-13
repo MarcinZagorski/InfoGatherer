@@ -95,5 +95,10 @@ namespace InfoGatherer.api.Data.Repositories
             }
             return user;
         }
+        public IQueryable<UserDto> GetQuerableList()
+        {
+            FormattableString sampleQuery = $@"Select Id, FirstName, LastName, Email, CreatedAt from AspNetUsers";
+            return _context.Database.SqlQuery<UserDto>(sampleQuery).AsQueryable();
+        }
     }
 }

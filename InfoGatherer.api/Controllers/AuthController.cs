@@ -1,6 +1,9 @@
 ﻿using FluentValidation;
+using InfoGatherer.api.Data.Entities;
 using InfoGatherer.api.Data.Repositories.Interfaces;
 using InfoGatherer.api.DTOs.Users;
+using InfoGatherer.api.Helpers;
+using InfoGatherer.api.Models;
 using InfoGatherer.api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -70,6 +73,18 @@ namespace InfoGatherer.api.Controllers
             }
 
             return Ok(authResponse);
+        }
+        
+        [HttpPost("list")]
+        public async Task<IActionResult> GetListOfUsers(PaginationListModel<DefaultFilter> opt)
+        {
+            IQueryable<UserDto> query = _userRepository.GetQuerableList();
+            if (!string.IsNullOrWhiteSpace(opt.Filter.Phrase))
+            {
+                query = query.Where(x => x.Email.Contains(opt.Filter.Phrase));
+            }
+            var list = await PaginationExtensions.GetPage(query, opt);
+            return Ok(list);
         }
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordDto model)

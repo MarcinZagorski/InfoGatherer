@@ -20,5 +20,9 @@ namespace InfoGatherer.api.Data.Repositories
             Wibor w = await _ctx.Wibors.FirstOrDefaultAsync(x => x.Date == date);
             return _mapper.Map<WiborDto>(w);
         }
+        public IQueryable<Wibor> GetQuerableList()
+        {
+            return _ctx.Wibors.AsQueryable();
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using InfoGatherer.api.DTOs.Scrappers.Wibor;
+﻿using InfoGatherer.api.Data.Entities.Scrapper;
+using InfoGatherer.api.DTOs.Scrappers.Wibor;
 
 namespace InfoGatherer.api.Data.Repositories.Interfaces
 {
@@ -6,5 +7,6 @@ namespace InfoGatherer.api.Data.Repositories.Interfaces
     {
         Task<WiborDto> GetLastWibor();
         Task<WiborDto> GetWiborByDate(DateTime date);
+        IQueryable<Wibor> GetQuerableList();
     }
 }

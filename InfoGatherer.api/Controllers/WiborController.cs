@@ -1,6 +1,9 @@
-﻿using InfoGatherer.api.Data.Repositories.Interfaces;
+﻿using InfoGatherer.api.Data.Entities.Scrapper;
+using InfoGatherer.api.Data.Repositories.Interfaces;
 using InfoGatherer.api.DTOs.Scrappers.Wibor;
 using InfoGatherer.api.Filters;
+using InfoGatherer.api.Helpers;
+using InfoGatherer.api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,10 +37,15 @@ namespace InfoGatherer.api.Controllers
             return Ok(x);
         }
         [HttpPost]
-        public async Task<IActionResult> WiborList()
+        public async Task<IActionResult> WiborList(PaginationListModel<DefaultFilter> opt)
         {
-            await Task.Delay(1000);
-            return Ok();
+            IQueryable<Wibor> query = _repo.GetQuerableList();
+            //if (!string.IsNullOrWhiteSpace(opt.Filter.Phrase)) 
+            //{
+            //    query = query.Where(x=> x.Date.ToString() == opt.Filter.Phrase);
+            //}
+            var list = await PaginationExtensions.GetPage(query, opt);
+            return Ok(list);
         }
     }
 }

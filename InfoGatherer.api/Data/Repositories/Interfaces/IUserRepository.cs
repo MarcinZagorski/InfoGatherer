@@ -10,5 +10,6 @@ namespace InfoGatherer.api.Data.Repositories.Interfaces
         Task<AppUser> LoginAsync(string email, string password);
         Task<bool> ChangePasswordAsync(string oldPassword, string newPassword);
         Task<AppUser> CheckApiKey(string apiKey);
+        IQueryable<UserDto> GetQuerableList();
     }
 }
