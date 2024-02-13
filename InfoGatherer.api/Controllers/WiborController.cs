@@ -1,4 +1,6 @@
-﻿using InfoGatherer.api.Filters;
+﻿using InfoGatherer.api.Data.Repositories.Interfaces;
+using InfoGatherer.api.DTOs.Scrappers.Wibor;
+using InfoGatherer.api.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,22 +13,25 @@ namespace InfoGatherer.api.Controllers
     [Route("[controller]")]
     [ApiController]
     [ApiKeyAuth]
-    public class WiborController : ControllerBase
+    public class WiborController(IWiborRepository repo) : ControllerBase
     {
         private const string APIKEYNAME = "ApiKey";
+        private readonly IWiborRepository _repo = repo;
 
-        // TODO: get_last_available && Post_list(pagination) && get_date / add cache
+        // TODO: Post_list(pagination) / add cache
         [HttpGet("last_available")]
         public async Task<IActionResult> GetLastAvailableWibor()
         {
-            await Task.Delay(1000);
-            return Ok();
+            WiborDto x = await _repo.GetLastWibor();
+            if (x == null) { return NotFound("Did not found specifed record"); }
+            return Ok(x);
         }
         [HttpGet("{date}")]
         public async Task<IActionResult> GetWiborByDate(DateTime date)
         {
-            await Task.Delay(1000);
-            return Ok();
+            WiborDto x = await _repo.GetWiborByDate(date);
+            if (x == null) { return NotFound($"Did not found any data for {date}"); }
+            return Ok(x);
         }
         [HttpPost]
         public async Task<IActionResult> WiborList()

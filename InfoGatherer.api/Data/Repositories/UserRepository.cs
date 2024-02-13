@@ -10,18 +10,12 @@ using ILogger = NLog.ILogger;
 
 namespace InfoGatherer.api.Data.Repositories
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository(AppDbContext context, UserManager<AppUser> userManager, ILogger logger) : IUserRepository
     {
-        private readonly UserManager<AppUser> _userManager;
-        private readonly AppDbContext _context;
-        private readonly ILogger _logger;
+        private readonly UserManager<AppUser> _userManager = userManager;
+        private readonly AppDbContext _context = context;
+        private readonly ILogger _logger = logger;
 
-        public UserRepository(AppDbContext context, UserManager<AppUser> userManager, ILogger logger)
-        {
-            _context = context;
-            _userManager = userManager;
-            _logger = logger;
-        }
         public async Task<bool> RegisterUserAsync(UserRegisterDto userRegisterDto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -95,7 +89,10 @@ namespace InfoGatherer.api.Data.Repositories
         public async Task<AppUser> CheckApiKey(string apiKey)
         {
             var user = await _context.Users.Where(x=> x.ApiKey == apiKey).FirstOrDefaultAsync();
-            //TODO if user is null check if user is logged
+            if(user == null)
+            {
+                user = _context.User == null ? null : await _context.Users.FindAsync(_context.User.Id);
+            }
             return user;
         }
     }

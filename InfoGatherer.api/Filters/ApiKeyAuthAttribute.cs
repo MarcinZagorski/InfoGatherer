@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
+using InfoGatherer.api.Data.Repositories.Interfaces;
 
 namespace InfoGatherer.api.Filters
 {
@@ -9,29 +10,22 @@ namespace InfoGatherer.api.Filters
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            //TODO check if apikey in database and check if its null
-            if (!context.HttpContext.Request.Headers.TryGetValue(ApiKeyName, out var extractedApiKey))
+            context.HttpContext.Request.Headers.TryGetValue(ApiKeyName, out var extractedApiKey);
+            var userRepository = context.HttpContext.RequestServices.GetService<IUserRepository>();
+
+            var response = await userRepository.CheckApiKey(extractedApiKey);
+
+            if (response == null)
             {
                 context.Result = new ContentResult()
                 {
                     StatusCode = 401,
-                    Content = "ApiKey not provided"
+                    Content = "Unathorized"
                 };
                 return;
             }
 
-            var apiKey = "expected_api_key";
-            if (!apiKey.Equals(extractedApiKey))
-            {
-                context.Result = new ContentResult()
-                {
-                    StatusCode = 403, 
-                    Content = "invalid ApiKey"
-                };
-                return;
-            }
-
-            await next(); 
+            await next();
         }
     }
 }

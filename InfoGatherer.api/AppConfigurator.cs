@@ -19,6 +19,7 @@ using Hangfire;
 using InfoGatherer.api.Filters;
 using Microsoft.Extensions.Options;
 using InfoGatherer.api.BackgroundTasks.Jobs.TestJobs;
+using InfoGatherer.api.Helpers;
 
 namespace InfoGatherer.api
 {
@@ -33,7 +34,7 @@ namespace InfoGatherer.api
             var configuration = _builder.Configuration;
             var logger = NLog.LogManager.GetCurrentClassLogger();
             services.AddSingleton<ILogger>(logger);
-
+            services.AddAutoMapper(typeof(AutoMapperProfile));
             // config's
             services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));
             services.Configure<GeneralConfig>(configuration.GetSection("GeneralConfig"));
@@ -42,6 +43,8 @@ namespace InfoGatherer.api
             // repos
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IWiborRepository, WiborRepository>();
+
 
             // validators
             services.AddTransient<IValidator<UserRegisterDto>, UserRegisterDtoValidator>();
