@@ -12,7 +12,7 @@ namespace InfoGatherer.api.Data.Repositories
         private readonly IMapper _mapper = mapper;
         public async Task<WiborDto> GetLastWibor()
         {
-            Wibor w = await _ctx.Wibors.AsQueryable().OrderByDescending(x=>x.Date).FirstOrDefaultAsync();
+            Wibor w = await _ctx.Wibors.AsQueryable().OrderByDescending(x => x.Date).FirstOrDefaultAsync();
             return _mapper.Map<WiborDto>(w);
         }
         public async Task<WiborDto> GetWiborByDate(DateTime date)
@@ -23,6 +23,32 @@ namespace InfoGatherer.api.Data.Repositories
         public IQueryable<Wibor> GetQuerableList()
         {
             return _ctx.Wibors.AsQueryable();
+        }
+        public async Task<string> AddOrUpdate(Wibor inputWibor)
+        {
+            var existingWibor = await _ctx.Wibors.FirstOrDefaultAsync(w => w.Date.Date == inputWibor.Date.Date);
+
+            if (existingWibor == null)
+            {
+                _ctx.Wibors.Add(inputWibor);
+                await _ctx.SaveChangesAsync();
+                return "Added";
+            }
+            else
+            {
+
+                existingWibor.Overnight = inputWibor.Overnight;
+                existingWibor.TomorrowNext = inputWibor.TomorrowNext;
+                existingWibor.SpotWeek = inputWibor.SpotWeek;
+                existingWibor.OneMonth = inputWibor.OneMonth;
+                existingWibor.ThreeMonths = inputWibor.ThreeMonths;
+                existingWibor.SixMonths = inputWibor.SixMonths;
+                existingWibor.OneYear = inputWibor.OneYear;
+                existingWibor.CreatedAt = DateTime.Now;
+
+                await _ctx.SaveChangesAsync();
+                return "Updated";
+            }
         }
     }
 }

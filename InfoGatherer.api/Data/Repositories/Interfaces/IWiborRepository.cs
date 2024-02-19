@@ -8,5 +8,6 @@ namespace InfoGatherer.api.Data.Repositories.Interfaces
         Task<WiborDto> GetLastWibor();
         Task<WiborDto> GetWiborByDate(DateTime date);
         IQueryable<Wibor> GetQuerableList();
+        Task<string> AddOrUpdate(Wibor wibor);
     }
 }
