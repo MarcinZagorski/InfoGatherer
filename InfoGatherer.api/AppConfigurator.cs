@@ -54,6 +54,7 @@ namespace InfoGatherer.api
             // services
             services.AddScoped<ITokenService, TokenService>();
             services.AddKeyedScoped<IWiborScrapperService, WiborBankierScarpperService>("Bankier");
+            services.AddKeyedScoped<IWiborScrapperService, WiborMoneyScarpperService>("Money");
 
             // hangfire
             services.AddTransient<IDailyJob, DailyJob>();
