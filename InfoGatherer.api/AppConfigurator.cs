@@ -35,6 +35,7 @@ namespace InfoGatherer.api
             var logger = NLog.LogManager.GetCurrentClassLogger();
             services.AddSingleton<ILogger>(logger);
             services.AddAutoMapper(typeof(AutoMapperProfile));
+            services.AddMemoryCache();
             // config's
             services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));
             services.Configure<GeneralConfig>(configuration.GetSection("GeneralConfig"));
@@ -55,6 +56,7 @@ namespace InfoGatherer.api
             services.AddScoped<ITokenService, TokenService>();
             services.AddKeyedScoped<IWiborScrapperService, WiborBankierScarpperService>("Bankier");
             services.AddKeyedScoped<IWiborScrapperService, WiborMoneyScarpperService>("Money");
+            services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
 
             // hangfire
             services.AddTransient<IDailyJob, DailyJob>();
